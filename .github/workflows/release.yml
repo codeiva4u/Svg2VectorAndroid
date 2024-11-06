@@ -48,8 +48,8 @@ jobs:
           # Check if the tag already exists on the remote and delete if it does
           if git rev-parse "refs/tags/$new_tag" >/dev/null 2>&1; then
             echo "Tag $new_tag already exists. Deleting it from the remote."
-            git push --delete origin "$new_tag"
-            git tag -d "$new_tag"
+            git push --delete origin "$new_tag"  # Delete tag from remote
+            git tag -d "$new_tag"  # Delete the local tag
           fi
           
           # Create and push the new tag
