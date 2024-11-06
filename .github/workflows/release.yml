@@ -36,7 +36,7 @@ jobs:
         run: |
           # Extract the latest tag
           tag="${{ steps.get_tag.outputs.tag }}"
-          IFS='.' read -ra parts <<<"${tag#v}"  # 'v' को हटा कर केवल संस्करण नंबर पर ध्यान दें
+          IFS='.' read -ra parts <<<"${tag#v}"  # Remove 'v' to focus on version number
           
           # Increment the patch version (e.g., v1.0.0 -> v1.0.1)
           new_tag="v${parts[0]}.${parts[1]}.$((${parts[2]} + 1))"
@@ -66,7 +66,6 @@ jobs:
           artifacts: 'Svg2VectorAndroid-*.jar'  # JAR file pattern
           token: ${{ secrets.GH_TOKEN }}
           tag: ${{ steps.create_tag.outputs.new_tag }}
+          name: Release ${{ steps.create_tag.outputs.new_tag }}
           draft: false
-          prerelease: false
-          generateReleaseNotes: true  # Automatically generate release notes
-          makeLatest: true  # Mark the release as the latest
+          prerelease: true
