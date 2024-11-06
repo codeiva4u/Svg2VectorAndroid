@@ -9,16 +9,16 @@ It uses [studio ide class Svg2Vector](https://android.googlesource.com/platform/
 
 Simply pass source directory path to SvgFilesProcessor and call process.
 
-# First Install JDK 
+## First Install JDK 
 
-# Run This Command And Build the project 
+## Run This Command And Build the project 
 
 ```
 ./gradlew fatJar
 ```
-# This creates Build This Jar Root /Svg2VectorAndroid-31.6.0.jar
+## This creates Build This Jar Root /Svg2VectorAndroid-31.6.0.jar
 
-# Import Multiple svgs icons Folder Then Run This Command Result output Folder
+## Import Multiple svgs icons Folder Then Run This Command Result output Folder
 ```
 java -jar Svg2VectorAndroid-31.6.0.jar -s "icons" -o "output" -e ".xml"
 ```
