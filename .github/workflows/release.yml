@@ -3,8 +3,8 @@ name: Build and Release JAR
 on:
   push:
     tags:
-      - 'v*'
-  workflow_dispatch:
+      - 'v*'  # केवल 'v' से शुरू होने वाले टैग पर ट्रिगर होगा (उदा: v1.0)
+  workflow_dispatch:  # मैन्युअल रूप से ट्रिगर करने के लिए
 
 jobs:
   build-and-release:
@@ -64,9 +64,11 @@ jobs:
       - name: Upload JAR to release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: 'Svg2VectorAndroid-*.jar'  
+          artifacts: 'Svg2VectorAndroid-*.jar'  # यहाँ पर JAR फाइल का पैटर्न डालें
           token: ${{ secrets.GH_TOKEN }}
-          tag: ${{ steps.create_tag.outputs.new_tag }}
-          release_name: Release ${{ steps.create_tag.outputs.new_tag }}
+          tag: ${{ steps.create_tag.outputs.new_tag }}  # Correctly pass the tag
           draft: false
           prerelease: false
+          generateReleaseNotes: true # Optionally disable release notes generation
+          makeLatest: true  # Mark this release as the latest one
+          skipIfReleaseExists: false  # Do not skip if the release exists
