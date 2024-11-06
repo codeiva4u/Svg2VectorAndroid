@@ -18,7 +18,7 @@ Simply pass source directory path to SvgFilesProcessor and call process.
 ```
 ## This creates Build This Jar Root /Svg2VectorAndroid-31.6.0.jar
 
-## Import Multiple svg From Project Root icons Folder Then Run This Command And Result output Folder
+## Import SVG from the icons folder in the project root, then run this command and the result will be shown in the output folder
 ```
 java -jar Svg2VectorAndroid-31.6.0.jar -s "icons" -o "output" -e ".xml"
 ```
