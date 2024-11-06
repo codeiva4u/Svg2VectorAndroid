@@ -65,19 +65,8 @@ jobs:
         with:
           artifacts: 'Svg2VectorAndroid-*.jar'  # JAR file pattern
           token: ${{ secrets.GH_TOKEN }}
-          name: Release ${{ steps.create_tag.outputs.new_tag }}  # Use 'name' instead of 'release_name'
-          tag: ${{ steps.create_tag.outputs.new_tag }}  # Ensure tag is passed correctly
+          tag: ${{ steps.create_tag.outputs.new_tag }}
           draft: false
           prerelease: false
-          generateReleaseNotes: false
-          makeLatest: legacy
-          omitBody: false
-          omitBodyDuringUpdate: false
-          omitDraftDuringUpdate: false
-          omitName: false
-          omitNameDuringUpdate: false
-          omitPrereleaseDuringUpdate: false
-          removeArtifacts: false
-          replacesArtifacts: true
-          skipIfReleaseExists: false
-          updateOnlyUnreleased: false
+          generateReleaseNotes: true  # Automatically generate release notes
+          makeLatest: true  # Mark the release as the latest
