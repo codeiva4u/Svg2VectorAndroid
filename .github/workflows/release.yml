@@ -3,8 +3,8 @@ name: Build and Release JAR
 on:
   push:
     tags:
-      - 'v*'  # केवल 'v' से शुरू होने वाले टैग पर ट्रिगर होगा (उदा: v1.0)
-  workflow_dispatch:  # मैन्युअल रूप से ट्रिगर करने के लिए
+      - 'v*'  
+  workflow_dispatch:  
 
 jobs:
   build-and-release:
