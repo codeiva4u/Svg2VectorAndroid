@@ -3,8 +3,8 @@ name: Build and Release JAR
 on:
   push:
     tags:
-      - 'v*'  # केवल 'v' से शुरू होने वाले टैग पर ट्रिगर होगा (उदा: v1.0)
-  workflow_dispatch:  # मैन्युअल रूप से ट्रिगर करने के लिए
+      - 'v*'  
+  workflow_dispatch:  
 
 jobs:
   build-and-release:
@@ -23,36 +23,26 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-
-      - name: Get the latest tag
-        id: get_tag
-        run: |
-          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
-          echo "Latest tag is $latest_tag"
-          echo "::set-output name=tag::$latest_tag"
-
+           
       - name: Create new tag
         id: create_tag
         run: |
           # Extract the latest tag and increment the patch version (e.g., v1.0.0 -> v1.0.1)
-          IFS='.' read -ra parts <<<"${{ steps.get_tag.outputs.tag }}"
+          tag="${{ steps.get_tag.outputs.tag }}"
+          IFS='.' read -ra parts <<<"${tag#v}"  # 'v' को हटा कर केवल संस्करण नंबर पर ध्यान दें
           new_tag="v${parts[0]}.${parts[1]}.$((${parts[2]} + 1))"
           echo "New tag will be $new_tag"
-          echo "::set-output name=new_tag::$new_tag"
+          echo "new_tag=$new_tag" >> $GITHUB_ENV
+
+          # Check if the tag already exists on the remote and delete if it does
+          if git rev-parse "refs/tags/$new_tag" >/dev/null 2>&1; then
+            echo "Tag $new_tag already exists. Deleting it from the remote."
+            git push --delete origin "$new_tag"
+            git tag -d "$new_tag"
+          fi
+
+          # Create and push the new tag
           git tag "$new_tag"
           git push origin "$new_tag"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-
-      - name: Build JAR file
-        run: ./gradlew fatJar
-
-      - name: Upload JAR to release
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: 'Svg2VectorAndroid-*.jar'  # यहाँ पर JAR फाइल का पैटर्न डालें
-          token: ${{ secrets.GH_TOKEN }}
-          tag: ${{ steps.create_tag.outputs.new_tag }}
-          release_name: Release ${{ steps.create_tag.outputs.new_tag }}
-          draft: false
-          prerelease: false
