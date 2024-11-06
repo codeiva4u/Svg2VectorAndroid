@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - 'v*'  
-  workflow_dispatch:  
+  workflow_dispatch:  # Manually trigger the workflow
 
 jobs:
   build-and-release:
@@ -31,12 +31,14 @@ jobs:
           echo "Latest tag is $latest_tag"
           echo "::set-output name=tag::$latest_tag"
 
-      - name: Create new tag
+      - name: Create or Update Tag
         id: create_tag
         run: |
-          # Extract the latest tag and increment the patch version (e.g., v1.0.0 -> v1.0.1)
+          # Extract the latest tag
           tag="${{ steps.get_tag.outputs.tag }}"
           IFS='.' read -ra parts <<<"${tag#v}"  # 'v' को हटा कर केवल संस्करण नंबर पर ध्यान दें
+          
+          # Increment the patch version (e.g., v1.0.0 -> v1.0.1)
           new_tag="v${parts[0]}.${parts[1]}.$((${parts[2]} + 1))"
           echo "New tag will be $new_tag"
           echo "new_tag=$new_tag" >> $GITHUB_ENV
@@ -44,13 +46,14 @@ jobs:
           # Check if the tag already exists on the remote and delete if it does
           if git rev-parse "refs/tags/$new_tag" >/dev/null 2>&1; then
             echo "Tag $new_tag already exists. Deleting it from the remote."
-            git push --delete origin "$new_tag"
-            git tag -d "$new_tag"
+            git push --delete origin "$new_tag"  # Delete the existing tag from remote
+            git tag -d "$new_tag"  # Delete the tag locally
           fi
 
-          # Create and push the new tag
+          # Create and push the new tag (or the same if needed)
           git tag "$new_tag"
-          git push origin "$new_tag"
+          git push origin "$new_tag"  # Push the new or updated tag to the remote
+
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
@@ -60,7 +63,7 @@ jobs:
       - name: Upload JAR to release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: 'Svg2VectorAndroid-*.jar'  # यहाँ पर JAR फाइल का पैटर्न डालें
+          artifacts: 'Svg2VectorAndroid-*.jar'  # JAR file pattern
           token: ${{ secrets.GH_TOKEN }}
           tag: ${{ steps.create_tag.outputs.new_tag }}
           release_name: Release ${{ steps.create_tag.outputs.new_tag }}
