@@ -2,12 +2,17 @@ name: Build and Release JAR
 
 on:
   push:
-
-  workflow_dispatch:  # Allow manual triggering
+    tags:
+      - 'v*'  # केवल 'v' से शुरू होने वाले टैग पर ट्रिगर होगा (उदा: v1.0)
+  workflow_dispatch:  # मैन्युअल रूप से ट्रिगर करने के लिए
 
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+
+    outputs:
+      latest_tag: ${{ steps.get_tag.outputs.tag }}
+      new_tag: ${{ steps.create_tag.outputs.new_tag }}
 
     steps:
       - name: Checkout repository
@@ -29,24 +34,11 @@ jobs:
       - name: Create new tag
         id: create_tag
         run: |
-          tag="${{ steps.get_tag.outputs.tag }}"
-          
-          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid tag format. Using v0.0.0 as default."
-            tag="v0.0.0"
-          fi
-
-          IFS='.' read -ra parts <<<"${tag#v}"
+          # Extract the latest tag and increment the patch version (e.g., v1.0.0 -> v1.0.1)
+          IFS='.' read -ra parts <<<"${{ steps.get_tag.outputs.tag }}"
           new_tag="v${parts[0]}.${parts[1]}.$((${parts[2]} + 1))"
           echo "New tag will be $new_tag"
           echo "::set-output name=new_tag::$new_tag"
-          
-          if git ls-remote --tags origin | grep -q "refs/tags/$new_tag"; then
-            echo "Tag $new_tag already exists. Deleting it from the remote."
-            git push --delete origin "$new_tag"
-            git tag -d "$new_tag"
-          fi
-          
           git tag "$new_tag"
           git push origin "$new_tag"
         env:
@@ -58,11 +50,9 @@ jobs:
       - name: Upload JAR to release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: 'Svg2VectorAndroid-*.jar'
+          artifacts: 'Svg2VectorAndroid-*.jar'  # यहाँ पर JAR फाइल का पैटर्न डालें
           token: ${{ secrets.GH_TOKEN }}
           tag: ${{ steps.create_tag.outputs.new_tag }}
+          release_name: Release ${{ steps.create_tag.outputs.new_tag }}
           draft: false
           prerelease: false
-          generateReleaseNotes: true
-          makeLatest: true
-          skipIfReleaseExists: false
