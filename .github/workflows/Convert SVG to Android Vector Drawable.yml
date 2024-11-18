@@ -33,16 +33,17 @@ jobs:
           mkdir -p output
           find output/ -type f -name "*.xml" -delete
 
-      # 5. Svg2VectorAndroid .jar फ़ाइल डाउनलोड करें
-      - name: Download Svg2VectorAndroid tool
+      # 5. Gradle सेटअप करें और JAR फाइल बिल्ड करें
+      - name: Build Svg2VectorAndroid JAR
         run: |
-          curl -L -o Svg2VectorAndroid.jar https://github.com/codeiva4u/Svg2VectorAndroid/releases/download/vv0.0.1/Svg2VectorAndroid-31.6.0.jar
+          chmod +x gradlew # सुनिश्चित करें कि gradlew फाइल निष्पादित करने योग्य है
+          ./gradlew fatJar # JAR फाइल बनाने के लिए Gradle कमांड चलाएं
 
-      # 6. नए SVG को Android Vector Drawable में कनवर्ट करें
+      # 6. SVG को Android Vector Drawable में कनवर्ट करें
       - name: Convert SVG to XML
         run: |
           mkdir -p output
-          java -jar Svg2VectorAndroid.jar -s "icons" -o "output" -e ".xml"
+          java -jar Svg2VectorAndroid-31.6.0.jar -s "icons" -o "output" -e ".xml"
 
       # 7. आउटपुट को GitHub आर्टिफैक्ट्स में सेव करें
       - name: Upload output
