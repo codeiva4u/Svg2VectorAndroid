@@ -24,26 +24,35 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Get the latest tag
+        id: get_tag
+        run: |
+          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag is $latest_tag"
+          echo "::set-output name=tag::$latest_tag"
+
       - name: Create new tag
-  id: create_tag
-  run: |
-    # Extract the latest tag and increment the patch version (e.g., v1.0.0 -> v1.0.1)
-    latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
-    IFS='.' read -ra parts <<<"${latest_tag#v}"
-    new_tag="v${parts[0]}.${parts[1]}.$((${parts[2]} + 1))"
-    echo "New tag will be $new_tag"
+        id: create_tag
+        run: |
+          # Extract the latest tag and increment the patch version (e.g., v1.0.0 -> v1.0.1)
+          IFS='.' read -ra parts <<<"${{ steps.get_tag.outputs.tag }}"
+          new_tag="v${parts[0]}.${parts[1]}.$((${parts[2]} + 1))"
+          echo "New tag will be $new_tag"
+          echo "::set-output name=new_tag::$new_tag"
+          git tag "$new_tag"
+          git push origin "$new_tag"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
-    # Save new_tag to an environment file
-    echo "new_tag=$new_tag" >> $GITHUB_ENV
+      - name: Build JAR file
+        run: ./gradlew fatJar
 
-    # Check if the tag already exists
-    if git rev-parse "$new_tag" >/dev/null 2>&1; then
-      echo "Tag $new_tag already exists. Exiting..."
-      exit 1
-    fi
-
-    # Create and push the new tag
-    git tag "$new_tag"
-    git push origin "$new_tag"
-  env:
-    GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Upload JAR to release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: 'Svg2VectorAndroid-*.jar'  # यहाँ पर JAR फाइल का पैटर्न डालें
+          token: ${{ secrets.GH_TOKEN }}
+          tag: ${{ steps.create_tag.outputs.new_tag }}
+          release_name: Release ${{ steps.create_tag.outputs.new_tag }}
+          draft: false
+          prerelease: false
