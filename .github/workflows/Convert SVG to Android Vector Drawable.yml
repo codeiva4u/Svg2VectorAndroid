@@ -19,21 +19,32 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          java-version: '21' # Java का वर्ज़न, आपके प्रोजेक्ट के अनुसार बदलें
-          distribution: 'temurin' # Java वितरण, 'temurin' आमतौर पर उपयोग किया जाता है
+          java-version: '21' # Java का नवीनतम संस्करण
+          distribution: 'temurin'
 
-      # 3. Svg2VectorAndroid .jar फ़ाइल को डाउनलोड करें
+      # 3. पुराने SVG और PNG फाइल्स को डिलीट करें
+      - name: Delete old SVG and PNG files
+        run: |
+          find icons/ -type f \( -name "*.svg" -o -name "*.png" \) -delete
+
+      # 4. पुराने XML आउटपुट फाइल्स को डिलीट करें
+      - name: Delete old XML files
+        run: |
+          mkdir -p output
+          find output/ -type f -name "*.xml" -delete
+
+      # 5. Svg2VectorAndroid .jar फ़ाइल डाउनलोड करें
       - name: Download Svg2VectorAndroid tool
         run: |
           curl -L -o Svg2VectorAndroid.jar https://github.com/codeiva4u/Svg2VectorAndroid/releases/download/vv0.0.1/Svg2VectorAndroid-31.6.0.jar
 
-      # 4. SVG को Android Vector Drawable में कनवर्ट करें
+      # 6. नए SVG को Android Vector Drawable में कनवर्ट करें
       - name: Convert SVG to XML
         run: |
           mkdir -p output
           java -jar Svg2VectorAndroid.jar -s "icons" -o "output" -e ".xml"
 
-      # 5. ऑउटपुट को GitHub आर्टिफैक्ट्स में सेव करें
+      # 7. आउटपुट को GitHub आर्टिफैक्ट्स में सेव करें
       - name: Upload output
         uses: actions/upload-artifact@v3
         with:
