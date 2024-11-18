@@ -3,74 +3,49 @@ name: Convert SVG to Android Vector Drawable
 on:
   push:
     paths:
-      - icons/**  # ट्रिगर केवल 'icons' फोल्डर में बदलाव पर
-  workflow_dispatch:  # मैनुअल ट्रिगर के लिए
+      - 'icons/**'
+  workflow_dispatch:
 
 jobs:
   convert-svg:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. रिपॉजिटरी चेकआउट करें
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      # 2. Java सेटअप करें
-      - name: Set up Java
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: '21'  # Java का नवीनतम संस्करण
+          java-version: '17'
           distribution: 'temurin'
 
-      # 3. Gradle सेटअप करें और JAR फाइल बिल्ड करें
-      - name: Build JAR file
-        run: |
-          chmod +x gradlew  # Gradle wrapper को executable बनाएं
-          ./gradlew fatJar  # JAR फाइल बनाने के लिए Gradle कमांड चलाएं
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
-      # 4. सुनिश्चित करें कि JAR फाइल रूट में है
-      - name: Check if JAR file exists
+      - name: Build JAR (if needed) - Check if JAR exists first
         run: |
           if [ ! -f "Svg2VectorAndroid-31.6.0.jar" ]; then
-            echo "JAR file not found, exiting!"
-            exit 1
+            echo "JAR file not found. Building..."
+            chmod +x gradlew
+            ./gradlew fatJar
           else
-            echo "JAR file found!"
+            echo "JAR file found. Skipping build."
           fi
 
-      # 5. output फोल्डर चेक करें और बनाएं
-      - name: Create output folder if not exists
-        run: |
-          if [ ! -d "output" ]; then
-            echo "Output folder not found. Creating it..."
-            mkdir output  # output फोल्डर बनाएँ
-          else
-            echo "Output folder already exists."
-          fi
+      - name: Create output directory
+        run: mkdir -p output
 
-      # 6. पुराने SVG और PNG फाइल्स को डिलीट करें
-      - name: Delete old SVG and PNG files
-        run: |
-          echo "Deleting old SVG and PNG files in icons folder..."
-          find icons/ -type f \( -name "*.svg" -o -name "*.png" \) -delete
-          echo "SVG and PNG files deleted."
-
-      # 7. पुराने XML आउटपुट फाइल्स को डिलीट करें
-      - name: Delete old XML files
-        run: |
-          echo "Deleting old XML files in output folder..."
-          find output/ -type f -name "*.xml" -delete
-          echo "Old XML files deleted."
-
-      # 8. SVG को Android Vector Drawable में कनवर्ट करें
       - name: Convert SVG to XML
-        run: |
-          echo "Converting SVG files to XML..."
-          java -jar Svg2VectorAndroid-31.6.0.jar -s "icons" -o "output" -e ".xml"
-          echo "SVG to XML conversion completed."
+        run: java -jar Svg2VectorAndroid-31.6.0.jar -s icons -o output -e .xml
 
-      # 9. आउटपुट को GitHub आर्टिफैक्ट्स में सेव करें
-      - name: Upload output
+      - name: Upload converted icons
         uses: actions/upload-artifact@v3
         with:
           name: converted-icons
