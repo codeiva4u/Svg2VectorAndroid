@@ -1,0 +1,40 @@
+name: Convert SVG to Android Vector Drawable
+
+on:
+  push:
+    paths:
+      - icons/** # ट्रिगर केवल 'icons' फोल्डर में बदलाव पर
+  workflow_dispatch: # मैन्युअल ट्रिगर के लिए
+
+jobs:
+  convert-svg:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. रिपॉजिटरी चेकआउट करें
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Java सेटअप करें
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17' # Java का वर्ज़न, आपके प्रोजेक्ट के अनुसार बदलें
+
+      # 3. Svg2VectorAndroid .jar फ़ाइल को डाउनलोड करें
+      - name: Download Svg2VectorAndroid tool
+        run: |
+          curl -L -o Svg2VectorAndroid.jar https://github.com/codeiva4u/Svg2VectorAndroid/releases/download/vv0.0.1/Svg2VectorAndroid-31.6.0.jar
+
+      # 4. SVG को Android Vector Drawable में कनवर्ट करें
+      - name: Convert SVG to XML
+        run: |
+          mkdir -p output
+          java -jar Svg2VectorAndroid.jar -s "icons" -o "output" -e ".xml"
+
+      # 5. ऑउटपुट को GitHub आर्टिफैक्ट्स में सेव करें
+      - name: Upload output
+        uses: actions/upload-artifact@v3
+        with:
+          name: converted-icons
+          path: output
