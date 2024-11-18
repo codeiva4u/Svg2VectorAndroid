@@ -22,30 +22,38 @@ jobs:
           java-version: '21' # Java का नवीनतम संस्करण
           distribution: 'temurin'
 
-      # 3. पुराने SVG और PNG फाइल्स को डिलीट करें
+      # 3. Gradle सेटअप करें और JAR फाइल को चेक करें
+      - name: Check and Build Svg2VectorAndroid JAR
+        run: |
+          # यदि Svg2VectorAndroid-31.6.0.jar पहले से मौजूद नहीं है, तो इसे Gradle से बनाएं
+          if [ ! -f Svg2VectorAndroid-31.6.0.jar ]; then
+            chmod +x gradlew # सुनिश्चित करें कि gradlew फाइल निष्पादित करने योग्य है
+            ./gradlew fatJar # JAR फाइल बनाने के लिए Gradle कमांड चलाएं
+          fi
+
+      # 4. output फोल्डर चेक और बनाएँ
+      - name: Create output folder if not exists
+        run: |
+          if [ ! -d "output" ]; then
+            mkdir output # output फोल्डर बनाएँ यदि यह मौजूद नहीं है
+          fi
+
+      # 5. पुराने SVG और PNG फाइल्स को डिलीट करें
       - name: Delete old SVG and PNG files
         run: |
           find icons/ -type f \( -name "*.svg" -o -name "*.png" \) -delete
 
-      # 4. पुराने XML आउटपुट फाइल्स को डिलीट करें
+      # 6. पुराने XML आउटपुट फाइल्स को डिलीट करें
       - name: Delete old XML files
         run: |
-          mkdir -p output
           find output/ -type f -name "*.xml" -delete
 
-      # 5. Gradle सेटअप करें और JAR फाइल बिल्ड करें
-      - name: Build Svg2VectorAndroid JAR
-        run: |
-          chmod +x gradlew # सुनिश्चित करें कि gradlew फाइल निष्पादित करने योग्य है
-          ./gradlew fatJar # JAR फाइल बनाने के लिए Gradle कमांड चलाएं
-
-      # 6. SVG को Android Vector Drawable में कनवर्ट करें
+      # 7. SVG को Android Vector Drawable में कनवर्ट करें
       - name: Convert SVG to XML
         run: |
-          mkdir -p output
           java -jar Svg2VectorAndroid-31.6.0.jar -s "icons" -o "output" -e ".xml"
 
-      # 7. आउटपुट को GitHub आर्टिफैक्ट्स में सेव करें
+      # 8. आउटपुट को GitHub आर्टिफैक्ट्स में सेव करें
       - name: Upload output
         uses: actions/upload-artifact@v3
         with:
