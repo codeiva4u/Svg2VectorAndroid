@@ -19,7 +19,7 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          java-version: '17' # Java का वर्ज़न, आपके प्रोजेक्ट के अनुसार बदलें
+          java-version: '21' # Java का वर्ज़न, आपके प्रोजेक्ट के अनुसार बदलें
           distribution: 'temurin' # Java वितरण, 'temurin' आमतौर पर उपयोग किया जाता है
 
       # 3. Svg2VectorAndroid .jar फ़ाइल को डाउनलोड करें
