@@ -22,50 +22,54 @@ jobs:
           java-version: '21'  # Java का नवीनतम संस्करण
           distribution: 'temurin'
 
-      # 3. Gradle सेटअप करें और JAR फाइल को चेक करें
-      - name: Build Svg2VectorAndroid JAR
+      # 3. Gradle सेटअप करें और JAR फाइल बिल्ड करें
+      - name: Build JAR file
         run: |
-          # Gradle Build Script को सही पथ से चलाएं
-          chmod +x gradlew  # gradlew फाइल को निष्पादित करने योग्य बनाएं
-          ./gradlew fatJar  # Gradle कमांड चलाएं
-          # सुनिश्चित करें कि JAR फाइल प्रोजेक्ट के रूट में बन गई है
-          ls -l Svg2VectorAndroid-31.6.0.jar  # फाइल लिस्टिंग चेक करें
+          chmod +x gradlew  # Gradle wrapper को executable बनाएं
+          ./gradlew fatJar  # JAR फाइल बनाने के लिए Gradle कमांड चलाएं
 
-      # 4. output फोल्डर चेक और बनाएँ
+      # 4. सुनिश्चित करें कि JAR फाइल रूट में है
+      - name: Check if JAR file exists
+        run: |
+          if [ ! -f "Svg2VectorAndroid-31.6.0.jar" ]; then
+            echo "JAR file not found, exiting!"
+            exit 1
+          else
+            echo "JAR file found!"
+          fi
+
+      # 5. output फोल्डर चेक करें और बनाएं
       - name: Create output folder if not exists
         run: |
-          # सुनिश्चित करें कि output फोल्डर मौजूद नहीं है तो इसे बनाएं
           if [ ! -d "output" ]; then
             echo "Output folder not found. Creating it..."
             mkdir output  # output फोल्डर बनाएँ
           else
             echo "Output folder already exists."
           fi
-          # output फोल्डर के अंदर क्या है यह चेक करें
-          ls -l output
 
-      # 5. पुराने SVG और PNG फाइल्स को डिलीट करें
+      # 6. पुराने SVG और PNG फाइल्स को डिलीट करें
       - name: Delete old SVG and PNG files
         run: |
           echo "Deleting old SVG and PNG files in icons folder..."
           find icons/ -type f \( -name "*.svg" -o -name "*.png" \) -delete
           echo "SVG and PNG files deleted."
 
-      # 6. पुराने XML आउटपुट फाइल्स को डिलीट करें
+      # 7. पुराने XML आउटपुट फाइल्स को डिलीट करें
       - name: Delete old XML files
         run: |
           echo "Deleting old XML files in output folder..."
           find output/ -type f -name "*.xml" -delete
           echo "Old XML files deleted."
 
-      # 7. SVG को Android Vector Drawable में कनवर्ट करें
+      # 8. SVG को Android Vector Drawable में कनवर्ट करें
       - name: Convert SVG to XML
         run: |
           echo "Converting SVG files to XML..."
           java -jar Svg2VectorAndroid-31.6.0.jar -s "icons" -o "output" -e ".xml"
           echo "SVG to XML conversion completed."
 
-      # 8. आउटपुट को GitHub आर्टिफैक्ट्स में सेव करें
+      # 9. आउटपुट को GitHub आर्टिफैक्ट्स में सेव करें
       - name: Upload output
         uses: actions/upload-artifact@v3
         with:
