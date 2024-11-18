@@ -3,8 +3,8 @@ name: Convert SVG to Android Vector Drawable
 on:
   push:
     paths:
-      - icons/** # ट्रिगर केवल 'icons' फोल्डर में बदलाव पर
-  workflow_dispatch: # मैनुअल ट्रिगर के लिए
+      - icons/**  # ट्रिगर केवल 'icons' फोल्डर में बदलाव पर
+  workflow_dispatch:  # मैनुअल ट्रिगर के लिए
 
 jobs:
   convert-svg:
@@ -19,41 +19,30 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          java-version: '21' # Java का नवीनतम संस्करण
+          java-version: '21'  # Java का नवीनतम संस्करण
           distribution: 'temurin'
 
       # 3. Gradle सेटअप करें और JAR फाइल को चेक करें
-      - name: Check and Build Svg2VectorAndroid JAR
+      - name: Build Svg2VectorAndroid JAR
         run: |
-          echo "Checking if Svg2VectorAndroid-31.6.0.jar exists..."
-          ls -l  # यह जांचने के लिए कि हमारे पास कौन से फाइल्स हैं
-          
-          # सुनिश्चित करें कि Gradle Build Script सही पथ पर है और Gradle कमांड को रन करें
-          if [ ! -f Svg2VectorAndroid-31.6.0.jar ]; then
-            echo "Svg2VectorAndroid-31.6.0.jar not found. Building it with Gradle..."
-            chmod +x gradlew # सुनिश्चित करें कि gradlew फाइल निष्पादित करने योग्य है
-            ./gradlew fatJar # Gradle कमांड चलाएं
-          else
-            echo "Svg2VectorAndroid-31.6.0.jar already exists."
-          fi
-          
-          # Gradle Build के बाद फाइल लिस्ट चेक करें
-          ls -l  # जाँच करें कि अब रूट में 'Svg2VectorAndroid-31.6.0.jar' है या नहीं
+          # Gradle Build Script को सही पथ से चलाएं
+          chmod +x gradlew  # gradlew फाइल को निष्पादित करने योग्य बनाएं
+          ./gradlew fatJar  # Gradle कमांड चलाएं
+          # सुनिश्चित करें कि JAR फाइल प्रोजेक्ट के रूट में बन गई है
+          ls -l Svg2VectorAndroid-31.6.0.jar  # फाइल लिस्टिंग चेक करें
 
       # 4. output फोल्डर चेक और बनाएँ
       - name: Create output folder if not exists
         run: |
-          echo "Checking if output folder exists..."
-          ls -l # चेक करें कि वर्तमान फोल्डर में क्या है
-          
+          # सुनिश्चित करें कि output फोल्डर मौजूद नहीं है तो इसे बनाएं
           if [ ! -d "output" ]; then
             echo "Output folder not found. Creating it..."
-            mkdir output # output फोल्डर बनाएँ यदि यह मौजूद नहीं है
+            mkdir output  # output फोल्डर बनाएँ
           else
             echo "Output folder already exists."
           fi
-          
-          ls -l output # output फोल्डर के अंदर क्या है, यह चेक करें
+          # output फोल्डर के अंदर क्या है यह चेक करें
+          ls -l output
 
       # 5. पुराने SVG और PNG फाइल्स को डिलीट करें
       - name: Delete old SVG and PNG files
