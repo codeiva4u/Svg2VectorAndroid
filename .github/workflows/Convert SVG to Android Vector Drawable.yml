@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - icons/** # ट्रिगर केवल 'icons' फोल्डर में बदलाव पर
-  workflow_dispatch: # मैन्युअल ट्रिगर के लिए
+  workflow_dispatch: # मैनुअल ट्रिगर के लिए
 
 jobs:
   convert-svg:
@@ -20,6 +20,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '17' # Java का वर्ज़न, आपके प्रोजेक्ट के अनुसार बदलें
+          distribution: 'temurin' # Java वितरण, 'temurin' आमतौर पर उपयोग किया जाता है
 
       # 3. Svg2VectorAndroid .jar फ़ाइल को डाउनलोड करें
       - name: Download Svg2VectorAndroid tool
